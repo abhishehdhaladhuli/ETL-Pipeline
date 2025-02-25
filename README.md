@@ -1,10 +1,10 @@
 # CodeTech-DataScience-Task-1-ETL-Pipeline Using Scikitlearn and Pandas 
-COMPANY: CODETECH IT SOLUTIONS
-NAME: ABHISHEK DHALADHULI
-INTERN ID: CT6WVEQ
-DOMAIN: DATA SCIENCE
-DURATION:6 WEEKS
-MENTOR:NEELA SANTHOSH
+COMPANY: CODETECH IT SOLUTIONS <br>
+NAME: ABHISHEK DHALADHULI<br>
+INTERN ID: CT6WVEQ<br>
+DOMAIN: DATA SCIENCE<br>
+DURATION:6 WEEKS<br>
+MENTOR:NEELA SANTHOSH<br>
 # DESCRIPTION OF THE TASK-1 WHICH  IS BUILDING ETL PIPELINE USING SCIKITLEARN AND PANDAS 
 
 The provided Python script is a comprehensive example of an ETL (Extract, Transform, Load) pipeline that automates the process of preprocessing, transforming, and loading data. This script leverages widely used libraries such as Pandas and Scikit-learn to handle various stages of the ETL process. Below is an in-depth description of the script, including the technologies used, the procedure, and the rationale behind each step.
