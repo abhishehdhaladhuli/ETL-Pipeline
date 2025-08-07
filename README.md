@@ -1,177 +1,192 @@
+# ETL Preprocessing App
 
-# DESCRIPTION OF THE TASK-1 WHICH  IS BUILDING ETL PIPELINE USING SCIKITLEARN AND PANDAS 
+## 📊 Overview
 
-The provided Python script is a comprehensive example of an ETL (Extract, Transform, Load) pipeline that automates the process of preprocessing, transforming, and loading data. This script leverages widely used libraries such as Pandas and Scikit-learn to handle various stages of the ETL process.
-## Technologies Used
+This Streamlit-based ETL (Extract, Transform, Load) application allows users to upload CSV or Excel datasets and automatically processes them by:
 
-1. **Pandas**:
-    - A powerful data manipulation and analysis library for Python.
-    - It provides data structures like DataFrame, which is essential for handling tabular data.
-    - Used for loading data from CSV files and saving processed data back to CSV format.
+* Handling missing values
+* Removing outliers
+* Encoding categorical variables
+* Scaling numeric features
+* Splitting into train-test sets
 
-2. **Scikit-learn**:
-    - A robust machine learning library in Python.
-    - Provides tools for data preprocessing, model building, and evaluation.
-    - Key components used in the script include:
-        - `train_test_split` for splitting data into training and testing sets.
-        - `StandardScaler` and `OneHotEncoder` for data transformation.
-        - `ColumnTransformer` for bundling multiple preprocessing steps.
-        - `Pipeline` for creating sequential preprocessing steps.
-        - `SimpleImputer` for handling missing values.
+Users can then download the preprocessed datasets for machine learning tasks.
 
-## Procedure
+---
 
-### 1. Load Data
-The script begins by defining a function `load_data` that takes a file path as input and uses Pandas to load the data from a CSV file into a DataFrame.
+## 🧱 Technologies Used
+
+* **Streamlit**: For building the interactive web app.
+* **Pandas**: For reading and manipulating tabular data.
+* **NumPy**: For efficient numeric operations.
+* **Scikit-learn**:
+
+  * `train_test_split` for splitting data
+  * `SimpleImputer`, `StandardScaler`, `OneHotEncoder` for preprocessing
+  * `Pipeline` and `ColumnTransformer` to streamline transformations
+  * `IsolationForest` for outlier detection
+
+---
+
+## 🔧 Code Explanation
+
+### 1. **File Loading**
 
 ```python
-def load_data(file_path):
-    """Load data from a CSV file."""
-    return pd.read_csv(file_path)
+def load_data(uploaded_file):
 ```
 
-### 2. Preprocess Data
-The `preprocess_data` function is responsible for preparing the data for analysis. It performs the following tasks:
+Loads either `.csv` or `.xlsx` file using pandas. If unsupported, throws an error.
 
-- **Separates Features and Target**:
-    - The target column is identified and separated from the feature columns.
-    - This step is crucial for supervised learning tasks where the target variable is predicted based on the features.
+### 2. **Drop Columns and Duplicates**
+
+```python
+def drop_high_missing_and_duplicates(df, threshold=0.5):
+```
+
+Removes columns with more than 50% missing values and drops duplicate rows.
+
+### 3. **Outlier Removal**
+
+```python
+def remove_outliers(df, contamination=0.01):
+```
+
+Uses `IsolationForest` to remove rows that are statistically anomalous in numeric columns.
+
+### 4. **Preprocessing Function**
 
 ```python
 def preprocess_data(df, target_column):
-    """Preprocess the dataset."""
-    X = df.drop(target_column, axis=1)
-    y = df[target_column]
 ```
 
-- **Identifies Numerical and Categorical Columns**:
-    - The script identifies columns with numerical data types (`int64` and `float64`) and categorical data types (`object`).
+* Splits the dataframe into `X` and `y`
+* Identifies numeric and categorical columns
+* Creates preprocessing pipelines:
 
-```python
-    numerical_cols = X.select_dtypes(include=['int64', 'float64']).columns
-    categorical_cols = X.select_dtypes(include=['object']).columns
-```
+  * **Numeric**: Impute missing values with mean, scale using StandardScaler
+  * **Categorical**: Impute with mode, encode with OneHotEncoder
+* Returns the combined `ColumnTransformer` and other relevant objects.
 
-- **Defines Preprocessing Steps**:
-    - For numerical data, it creates a pipeline that imputes missing values using the mean and scales the data using `StandardScaler`.
-
-```python
-    numerical_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='mean')),
-        ('scaler', StandardScaler())
-    ])
-```
-
-    - For categorical data, it creates a pipeline that imputes missing values using the most frequent strategy and encodes the data using `OneHotEncoder`.
-
-```python
-    categorical_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='most_frequent')),
-        ('onehot', OneHotEncoder(handle_unknown='ignore'))
-    ])
-```
-
-- **Combines Preprocessing Steps**:
-    - The numerical and categorical preprocessing steps are combined using `ColumnTransformer`.
-
-```python
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', numerical_transformer, numerical_cols),
-            ('cat', categorical_transformer, categorical_cols)
-        ])
-```
-
-- **Returns Preprocessing Pipeline and Data**:
-    - The function returns the preprocessing pipeline, the feature DataFrame (`X`), and the target Series (`y`).
-
-```python
-    return preprocessor, X, y
-```
-
-### 3. Transform Data
-The `transform_data` function applies the preprocessing pipeline to the feature DataFrame (`X`) to transform the data.
+### 5. **Transformation**
 
 ```python
 def transform_data(preprocessor, X):
-    """Transform the dataset using the preprocessor."""
-    return preprocessor.fit_transform(X)
 ```
 
-### 4. Split Data
-The `split_data` function splits the transformed data into training and testing sets using Scikit-learn's `train_test_split`.
+Fits and transforms `X` using the `preprocessor` pipeline.
+
+### 6. **Train-Test Split**
 
 ```python
 def split_data(X, y):
-    """Split the dataset into training and testing sets."""
-    return train_test_split(X, y, test_size=0.2, random_state=42)
 ```
 
-### 5. Main Function
-The `main` function orchestrates the entire ETL process. It performs the following steps:
+Splits features and target into training and testing sets using an 80/20 ratio.
 
-- **Requests User Input**:
-    - Prompts the user to input the dataset file path, target column name, and output path for saving the processed data.
+### 7. **CSV Export**
 
 ```python
-def main():
-    file_path = input("Enter the path to the dataset file (e.g., data/dataset.csv): ")
-    target_column = input("Enter the name of the target column: ")
-    output_path = input("Enter the output path to save the processed data (e.g., data/): ")
+def convert_df_to_csv_bytes(df):
 ```
 
-- **Loads the Dataset**:
-    - Calls the `load_data` function to read the dataset into a DataFrame.
+Converts any DataFrame to a downloadable CSV byte object.
+
+---
+
+## 🖊️ Streamlit UI Workflow
+
+1. **Page Config and Title**
 
 ```python
-    df = load_data(file_path)
+st.set_page_config()
+st.title()
 ```
 
-- **Preprocesses the Data**:
-    - Calls `preprocess_data` to create the preprocessing pipeline and separates the features and target.
+Sets the web page layout and displays app title.
+
+2. **File Uploader**
 
 ```python
-    preprocessor, X, y = preprocess_data(df, target_column)
+uploaded_file = st.file_uploader()
 ```
 
-- **Transforms the Data**:
-    - Applies the preprocessing pipeline to the features using `transform_data`.
+Accepts CSV or Excel file from user.
+
+3. **Target Column Selection**
 
 ```python
-    X_transformed = transform_data(preprocessor, X)
+st.selectbox("Select target column")
 ```
 
-- **Splits the Data**:
-    - Splits the transformed data into training and testing sets using `split_data`.
+User selects the column to be predicted (e.g. for supervised learning).
+
+4. **Data Preview and Stats**
 
 ```python
-    X_train, X_test, y_train, y_test = split_data(X_transformed, y)
+st.write("Data Preview", df.head())
 ```
 
-- **Saves the Processed Data**:
-    - Saves the training and testing sets to CSV files at the specified output path.
+Shows the top 5 rows and shape of uploaded dataset.
+
+5. **Preprocessing**
 
 ```python
-    pd.DataFrame(X_train).to_csv(output_path + 'X_train.csv', index=False)
-    pd.DataFrame(X_test).to_csv(output_path + 'X_test.csv', index=False)
-    pd.DataFrame(y_train).to_csv(output_path + 'y_train.csv', index=False)
-    pd.DataFrame(y_test).to_csv(output_path + 'y_test.csv', index=False)
+preprocessor, X, y, dropped_cols = preprocess_data(...)
 ```
 
-- **Prints Completion Message**:
-    - Informs the user that the ETL process has been completed successfully.
+Cleans and transforms the dataset.
+
+6. **Splitting and Transformation**
 
 ```python
-    print("ETL process completed successfully!")
+X_train, X_test, y_train, y_test = split_data(...)
 ```
 
-### Execution
-The script is executed by calling the `main` function when the script is run directly.
+Performs train-test split after transformations.
+
+7. **Download Buttons**
 
 ```python
-if __name__ == "__main__":
-    main()
+st.download_button("Download X_train.csv"...)
 ```
 
-## Summary
-This script provides a dynamic and flexible ETL pipeline for preprocessing, transforming, and loading data. By leveraging Pandas and Scikit-learn, it handles various preprocessing tasks such as imputing missing values, scaling numerical features, and encoding categorical features. The user-friendly interface allows users to input the dataset file path, target column name, and output path, making the script adaptable to different datasets and use cases. This script serves as a robust foundation for more complex data processing pipelines and can be extended to include additional preprocessing steps or transformations as needed.
+Allows users to download all the processed datasets.
+
+---
+
+## 🚀 How to Run the App
+
+1. Clone the repository:
+
+```bash
+git clone <your-repo-url>
+cd <repo-folder>
+```
+
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Run Streamlit app:
+
+```bash
+streamlit run etl.py  # or streamlit_app.py
+```
+
+---
+
+## 🌐 Live Demo
+
+Deployed using Streamlit Community Cloud:
+
+> [ETL Preprocessing App](https://etl-pipeline-kpsftctfu3cynqyt9uh4te.streamlit.app/)
+
+---
+
+
+## 🙏 Acknowledgements
+
+Special thanks to open-source libraries like Streamlit and Scikit-learn that made this possible!
