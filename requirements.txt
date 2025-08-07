@@ -3,3 +3,5 @@ pandas
 numpy
 scikit-learn
 openpyxl
+chromadb==1.0.10
+bcrypt>=4.0.1
